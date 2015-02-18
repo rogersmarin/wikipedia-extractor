@@ -118,12 +118,12 @@ version = '2.5'
 
 def WikiDocument(out, id, title, text):
     url = get_url(id, prefix)
-    header = '<doc id="%s" url="%s" title="%s">\n' % (id, url, title)
+    #header = '<doc id="%s" url="%s" title="%s">\n' % (id, url, title)
     # Separate header from text with a newline.
-    header += title + '\n'
-    header = header.encode('utf-8')
+    header = '\n'
+    #header = header.encode('utf-8')
     text = clean(text)
-    footer = "\n</doc>"
+    footer = '\n'
     out.reserve(len(header) + len(text) + len(footer))
     print >> out, header
     for line in compact(text):
@@ -554,11 +554,11 @@ class OutputSplitter:
 
 tagRE = re.compile(r'(.*?)<(/?\w+)[^>]*>(?:([^<]*)(<.*?>)?)?')
 
-def process_data(input, output):
+def process_data(file_name, output):
     global prefix
-
     page = []
     id = None
+    input = open(input_file)
     inText = False
     redirect = False
     for line in input:
@@ -621,8 +621,8 @@ def main():
     script_name = os.path.basename(sys.argv[0])
 
     try:
-        long_opts = ['help', 'compress', 'bytes=', 'basename=', 'links', 'ns=', 'sections', 'output=', 'version']
-        opts, args = getopt.gnu_getopt(sys.argv[1:], 'cb:hln:o:B:sv', long_opts)
+        long_opts = ['help', 'file=', 'compress', 'bytes=', 'basename=', 'links', 'ns=', 'sections', 'output=', 'version']
+        opts, args = getopt.gnu_getopt(sys.argv[1:], 'cb:hln:o:f:B:sv', long_opts)
     except getopt.GetoptError:
         show_usage(script_name)
         sys.exit(1)
@@ -630,11 +630,13 @@ def main():
     compress = False
     file_size = 500 * 1024
     output_dir = '.'
-
+    file_name = ''
     for opt, arg in opts:
         if opt in ('-h', '--help'):
             show_help()
             sys.exit()
+        elif opt in ('-f', '--file'):
+            file_name = arg
         elif opt in ('-c', '--compress'):
             compress = True
         elif opt in ('-l', '--links'):
@@ -679,7 +681,7 @@ def main():
         ignoreTag('a')
 
     output_splitter = OutputSplitter(compress, file_size, output_dir)
-    process_data(sys.stdin, output_splitter)
+    process_data(file_name, output_splitter)
     output_splitter.close()
 
 if __name__ == '__main__':
